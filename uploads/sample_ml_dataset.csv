@@ -1,0 +1,11 @@
+age,gender,income,spending_score,loan_status
+25,Male,30000,70,Approved
+35,Female,50000,40,Approved
+45,Male,70000,20,Rejected
+28,Female,32000,85,Approved
+50,Male,90000,15,Rejected
+32,Female,40000,60,Approved
+41,Male,65000,25,Rejected
+29,Female,34000,75,Approved
+38,Male,58000,35,Approved
+47,Female,80000,10,Rejected
