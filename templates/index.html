@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Algorithm Analysis & Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: block;
+            min-height: calc(100vh - 40px);
+        }
+
+        .analysis-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                min-height: auto;
+            }
+        }
+
+        /* Left Panel - Analysis */
+        .analysis-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8eaff;
+            border-color: #764ba2;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-text strong {
+            color: #667eea;
+            display: block;
+            margin-top: 5px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* File Info */
+        .file-info {
+            background: #f0f2ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .info-item strong {
+            color: #333;
+        }
+
+        .info-item span {
+            color: #666;
+        }
+
+        /* Algorithm Selection */
+        .algorithm-group {
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .algorithm-group-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .algorithm-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .algorithm-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin-right: 10px;
+            accent-color: #667eea;
+        }
+
+        .algorithm-item label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+
+        .algorithm-item input[type="checkbox"]:hover + label {
+            color: #667eea;
+        }
+
+        /* Target Column Selection */
+        .target-selection {
+            margin-bottom: 20px;
+        }
+
+        .target-selection label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        /* Results */
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-header {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .result-content {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+        }
+
+        .result-item strong {
+            color: #333;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #c62828;
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Right Panel - Chat */
+        .chat-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 360px;
+            max-height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            transition: all 0.25s ease;
+        }
+
+        .chat-panel.collapsed {
+            width: 62px;
+            height: 62px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .chat-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 62px;
+            height: 62px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .chat-panel-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 18px 18px 14px;
+            padding-top: 72px;
+        }
+
+        .chat-panel.collapsed .chat-panel-content {
+            display: none;
+        }
+
+        .chat-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            padding-right: 6px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 84%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .message.bot .message-content {
+            background: #f0f2ff;
+            color: #333;
+            border: 1px solid #e0e5ff;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        #chatInput {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: border-color 0.3s ease;
+        }
+
+        #chatInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-send {
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .empty-state p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel: Analysis -->
+        <div class="analysis-panel">
+            <h1 style="color: #333; margin-bottom: 30px;">ML Algorithm Analyzer</h1>
+
+            <!-- File Upload Section -->
+            <div class="section">
+                <h2 class="section-title">📁 Upload Dataset</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">
+                        Click to upload or drag and drop
+                        <strong>CSV or Excel files</strong>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+                <div class="file-info" id="fileInfo">
+                    <div class="info-item">
+                        <strong>File:</strong>
+                        <span id="infoFileName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Rows:</strong>
+                        <span id="infoRows">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Columns:</strong>
+                        <span id="infoColumns">-</span>
+                    </div>
+                </div>
+                <div class="upload-summary" id="uploadSummary" style="display:none;">
+                    <h3 style="margin-bottom: 12px;">Dataset Pre-Analysis Summary</h3>
+                    <div class="summary-grid" id="summaryGrid"></div>
+                    <div style="margin-top: 12px; font-size: 13px; color: #555;" id="summaryHint"></div>
+                </div>
+                <div class="prompt-box" id="cleanPrompt" style="display:none;">
+                    <div id="cleanPromptText"></div>
+                    <div class="prompt-buttons">
+                        <button id="cleanYesBtn">Yes, clean data</button>
+                        <button id="cleanNoBtn" class="secondary">No, keep data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Column Selection -->
+            <div class="section">
+                <h2 class="section-title">🎯 Target Columns (for Supervised Learning)</h2>
+                    <select id="targetColumn" multiple size="5">
+                        <option value="">-- Select target columns (optional) --</option>
+                    </select>
+                    <small style="color: #999; display: block; margin-top: 8px;">Select one or more target columns for supervised or multi-output analysis (hold Ctrl/Cmd to select multiple).</small>
+            </div>
+
+            <!-- Algorithm Selection -->
+            <div class="section">
+                <h2 class="section-title">🤖 Select ML Algorithms</h2>
+                
+                <div class="algorithm-group">
+                    <div class="algorithm-group-title">Supervised Learning</div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-logistic" value="Logistic Regression">
+                        <label for="algo-logistic">Logistic Regression</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-dt" value="Decision Tree">
+                        <label for="algo-dt">Decision Tree</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-rf" value="Random Forest">
+                        <label for="algo-rf">Random Forest</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-svm" value="SVM">
+                        <label for="algo-svm">Support Vector Machine (SVM)</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-lr" value="Linear Regression">
+                        <label for="algo-lr">Linear Regression</label>
+                    </div>
+                </div>
+
+                <div class="algorithm-group">
+                    <div class="algorithm-group-title">Unsupervised Learning</div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-kmeans" value="K-Means">
+                        <label for="algo-kmeans">K-Means Clustering</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-pca" value="PCA">
+                        <label for="algo-pca">Principal Component Analysis (PCA)</label>
+                    </div>
+                    <div class="algorithm-item">
+                        <input type="checkbox" id="algo-hc" value="Hierarchical Clustering">
+                        <label for="algo-hc">Hierarchical Clustering</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button class="btn-analyze" id="analyzeBtn" disabled>Analyze</button>
+                <button class="btn-clear" id="clearBtn">Clear</button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing with selected algorithms...</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results-container" id="resultsContainer"></div>
+            <div class="results-container" id="bestModelContainer"></div>
+        </div>
+    </div>
+
+    <!-- Floating Chat Assistant -->
+    <div class="chat-panel collapsed" id="chatPanel">
+        <button class="chat-toggle" id="chatToggleBtn" aria-label="Toggle chat assistant">💬</button>
+        <div class="chat-panel-content">
+            <h2 class="chat-header">💬 ML Assistant</h2>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-content">
+                        Hello! I can answer questions about your uploaded dataset, the selected models, and the results from the analysis. Ask me anything about the data or the ML workflow.
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Ask about the file or analysis...">
+                <button class="btn-send" id="chatSendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let uploadedFileName = '';
+        let selectedAlgorithms = [];
+        let uploadCompleted = false;
+        let cleanDecisionHandled = false;
+        let zeroVarianceColumns = [];
+
+        // Upload functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileUpload(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadedFileName = file.name;
+            uploadCompleted = false;
+            cleanDecisionHandled = false;
+            zeroVarianceColumns = [];
+            document.getElementById('analyzeBtn').disabled = true;
+
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    uploadCompleted = true;
+                    updateFileInfo(data.data_info, file.name);
+                    updateDatasetSummary(data.data_info);
+                    updateTargetColumnDropdown(data.data_info.columns);
+                    showNotification('File uploaded successfully!');
+                } else {
+                    showError(data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                showError('Error uploading file: ' + error.message);
+            });
+        }
+
+        function updateFileInfo(info, fileName) {
+            document.getElementById('infoFileName').textContent = fileName;
+            document.getElementById('infoRows').textContent = info.rows;
+            document.getElementById('infoColumns').textContent = info.columns.length;
+            fileInfo.classList.add('show');
+        }
+
+        function updateDatasetSummary(info) {
+            zeroVarianceColumns = info.zero_variance_columns || [];
+            const summaryGrid = document.getElementById('summaryGrid');
+            const summaryHint = document.getElementById('summaryHint');
+            summaryGrid.innerHTML = '';
+
+            const summaryItems = [
+                { label: 'Rows', value: info.rows },
+                { label: 'Columns', value: info.columns.length },
+                { label: 'Numeric Columns', value: info.numeric_columns.length },
+                { label: 'Categorical Columns', value: info.categorical_columns.length },
+                { label: 'Zero-Variance Columns', value: zeroVarianceColumns.length },
+                { label: 'Missing Values', value: Object.values(info.missing_values).reduce((acc, v) => acc + v, 0) }
+            ];
+
+            summaryItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.innerHTML = `<strong>${item.label}</strong><span>${item.value}</span>`;
+                summaryGrid.appendChild(div);
+            });
+
+            let columnPreview = info.columns.slice(0, 5).join(', ');
+            if (info.columns.length > 5) columnPreview += ', ...';
+            summaryGrid.innerHTML += `<div class="summary-item" style="grid-column: span 2;"><strong>First columns</strong><span>${columnPreview}</span></div>`;
+
+            document.getElementById('uploadSummary').style.display = 'block';
+
+            if (zeroVarianceColumns.length > 0) {
+                cleanDecisionHandled = false;
+                renderCleanPrompt(zeroVarianceColumns);
+                summaryHint.textContent = 'Zero-variance columns were detected. Please choose whether to remove them before analysis.';
+            } else {
+                document.getElementById('cleanPrompt').style.display = 'none';
+                cleanDecisionHandled = true;
+                summaryHint.textContent = 'No zero-variance columns detected. You may now choose target columns and algorithms.';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        function renderCleanPrompt(zeroCols) {
+            const cleanPromptText = document.getElementById('cleanPromptText');
+            cleanPromptText.innerHTML = `The dataset contains <strong>${zeroCols.length}</strong> constant column(s) that should be removed before analysis: <strong>${zeroCols.join(', ')}</strong>. Remove them now?`;
+            document.getElementById('cleanPrompt').style.display = 'block';
+        }
+
+        function handleCleanDecision(clean) {
+            if (!clean) {
+                cleanDecisionHandled = true;
+                document.getElementById('cleanPrompt').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+                showNotification('Data cleaning skipped. You may continue with analysis.');
+                return;
+            }
+
+            document.getElementById('cleanYesBtn').disabled = true;
+            document.getElementById('cleanNoBtn').disabled = true;
+
+            fetch('/api/clean', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cleanYesBtn').disabled = false;
+                document.getElementById('cleanNoBtn').disabled = false;
+
+                if (data.success) {
+                    cleanDecisionHandled = true;
+                    document.getElementById('cleanPrompt').style.display = 'none';
+                    updateFileInfo(data.data_info, uploadedFileName);
+                    updateTargetColumnDropdown(data.data_info.columns);
+                    updateDatasetSummary(data.data_info);
+                    showNotification('Zero-variance columns removed. You may continue with analysis.');
+                } else {
+                    showError(data.error || 'Data cleaning failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('cleanYesBtn').disabled = false;
+                document.getElementById('cleanNoBtn').disabled = false;
+                showError('Error cleaning data: ' + error.message);
+            });
+        }
+
+        function updateTargetColumnDropdown(columns) {
+            const select = document.getElementById('targetColumn');
+            select.innerHTML = '<option value="">-- Select target columns (optional) --</option>';
+            columns.forEach(col => {
+                const option = document.createElement('option');
+                option.value = col;
+                option.textContent = col;
+                select.appendChild(option);
+            });
+        }
+
+        // Get selected algorithms
+        function getSelectedAlgorithms() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // Analyze button
+        document.getElementById('analyzeBtn').addEventListener('click', () => {
+            if (uploadedFileName === '') {
+                showError('Please upload a file first');
+                return;
+            }
+
+            const algorithms = getSelectedAlgorithms();
+            if (!uploadCompleted) {
+                showError('Please upload a file first');
+                return;
+            }
+
+            if (!cleanDecisionHandled) {
+                showError('Please decide whether to clean zero-variance columns before analysis');
+                return;
+            }
+
+            if (algorithms.length === 0) {
+                showError('Please select at least one algorithm');
+                return;
+            }
+
+            // collect multiple selected target columns
+            const targetSelect = document.getElementById('targetColumn');
+            const targetColumn = Array.from(targetSelect.selectedOptions).map(o => o.value).filter(v => v && v !== '');
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('analyzeBtn').disabled = true;
+
+            fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    algorithms: algorithms,
+                    target_columns: targetColumn.length ? targetColumn : null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('analyzeBtn').disabled = false;
+
+                if (data.success) {
+                    displayResults(data.results, data.best_model);
+                    showNotification('Analysis completed!');
+                } else {
+                    showError(data.error || 'Analysis failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('analyzeBtn').disabled = false;
+                showError('Error during analysis: ' + error.message);
+            });
+        });
+
+        // Display results
+        function displayResults(results, bestModel) {
+            const container = document.getElementById('resultsContainer');
+            const bestContainer = document.getElementById('bestModelContainer');
+            container.innerHTML = '<h2 class="section-title">📊 Results</h2>';
+            bestContainer.innerHTML = '';
+
+            Object.entries(results).forEach(([algorithm, result]) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+
+                let badge = result.type || 'Unknown';
+                let isBestModel = bestModel && bestModel.name === algorithm;
+
+                if (result.error) {
+                    card.innerHTML = `
+                        <div class="error-message">
+                            <strong>${algorithm}:</strong> ${result.error}
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="result-header">
+                            ${algorithm}
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                ${isBestModel ? '<span class="result-badge">Most Accurate</span>' : ''}
+                                <span class="result-badge">${badge}</span>
+                            </div>
+                        </div>
+                        <div class="result-content">
+                            ${Object.entries(result).map(([key, value]) => {
+                                if (key === 'type') return '';
+                                let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                let displayValue = typeof value === 'number' ? value.toFixed(4) : value;
+                                return `<div class="result-item"><strong>${displayKey}:</strong> <span class="result-value">${displayValue}</span></div>`;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                container.appendChild(card);
+            });
+
+            if (bestModel) {
+                const metricLabel = bestModel.metric ? bestModel.metric.replace(/_/g, ' ') : 'score';
+                bestContainer.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            Most accurate selected model
+                            <span class="result-badge">${metricLabel}</span>
+                        </div>
+                        <div class="result-content">
+                            <div class="result-item"><strong>Model:</strong> <span class="result-value">${bestModel.name}</span></div>
+                            <div class="result-item"><strong>Accuracy score:</strong> <span class="result-value">${bestModel.score !== null && bestModel.score !== undefined ? bestModel.score.toFixed(4) : 'N/A'}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('resultsContainer').innerHTML = '';
+            document.getElementById('bestModelContainer').innerHTML = '';
+            document.getElementById('fileInfo').classList.remove('show');
+            document.getElementById('uploadSummary').style.display = 'none';
+            document.getElementById('cleanPrompt').style.display = 'none';
+            document.getElementById('summaryGrid').innerHTML = '';
+            document.getElementById('summaryHint').textContent = '';
+            document.getElementById('targetColumn').innerHTML = '<option value="">-- Select target columns (optional) --</option>';
+            document.getElementById('analyzeBtn').disabled = true;
+            uploadedFileName = '';
+            uploadCompleted = false;
+            cleanDecisionHandled = false;
+            zeroVarianceColumns = [];
+            showNotification('Form cleared');
+        });
+
+        // Chat functionality
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatPanel = document.getElementById('chatPanel');
+        const chatToggleBtn = document.getElementById('chatToggleBtn');
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            chatInput.value = '';
+
+            // Send to backend
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                }
+            })
+            .catch(error => {
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            });
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.getElementById('cleanYesBtn').addEventListener('click', () => handleCleanDecision(true));
+        document.getElementById('cleanNoBtn').addEventListener('click', () => handleCleanDecision(false));
+        chatToggleBtn.addEventListener('click', () => {
+            chatPanel.classList.toggle('collapsed');
+            if (!chatPanel.classList.contains('collapsed')) {
+                chatInput.focus();
+            }
+        });
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Notification functions
+        function showError(message) {
+            const container = document.getElementById('resultsContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+
+        function showNotification(message) {
+            // You can enhance this with a toast notification
+            console.log(message);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
